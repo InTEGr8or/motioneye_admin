@@ -1,0 +1,142 @@
+#!pwsh
+
+# Devices
+$pi_4 = "10.0.0.100"
+$pi_zero = "10.0.0.101"
+
+#!markdown
+
+* [Raspberry Pi 4](http://10.0.0.100)
+* [Raspberry Pi Zero](http://10.0.0.101)
+* [Google Drive folder](https://drive.google.com/drive/u/2/folders/1wMFxkd5FmA7wWsf69FkvdI3hfWg9K6w8)
+* [MotionEyeOS GitHub FAQ](https://github.com/ccrisan/motioneyeos/wiki/FAQ)
+
+#!pwsh
+
+# [Wifi Preconfiguration · ccrisan/motioneyeos Wiki](https://github.com/ccrisan/motioneyeos/wiki/Wifi-Preconfiguration)
+
+<#
+    Run this from the CLI and respond to the password prompt
+    $ENV:netgear_pwd = Get-Secret -Name netgear_pwd -Vault LocalStore -AsPlainText
+#>
+
+$wpa_content = @"
+country=US
+update_config=1
+ctrl_interface=/var/run/wpa_supplicant
+
+network={
+    scan_ssid=1
+    ssid="NETGEAR51-2.4G"
+    psk="$ENV:netgear_pwd"
+}
+"@
+
+$wpa_path = "I:\wpa_supplicant.conf"
+Write-Host $wpa_content
+# Set-Content -Value $wpa_content -Path $wpa_path
+
+# Default login: admin
+# Default password: <blank>
+
+#!markdown
+
+## SSH in MotionEyeOS
+
+* default user: root
+* default passwor: <blank>
+
+Initial SSH connection can be made with `ssh root@10.0.0.7`
+
+#!pwsh
+
+# Raspbian Lite would be nice to install headless, but I had to connect a monitor to edit the sshd_config below.
+# [How to fix the ssh permission denied (publickey) error](https://bitlaunch.io/blog/how-to-fix-the-ssh-permission-denied-publickey-error/)
+# [How to Fix SSH Failed Permission Denied (publickey,gssapi-keyex,gssapi-with-mic)](https://phoenixnap.com/kb/ssh-permission-denied-publickey)
+# Test ssh
+ssh -vvv root@10.0.0.10
+
+#!markdown
+
+## MotionEye on Raspian
+
+```yml
+Port: 8765
+Logs: /var/log/
+Config: /etc/motioneye/motioneye.conf
+```
+
+#!pwsh
+
+# THIS file needs to be updated on the Pi before SSH on the Raspbian Lite Bullseye
+
+scp ./sshd_config pi@10.0.0.10:/etc/ssh/
+ssh pi@10.0.0.10 sudo systemctl restrt sshd
+
+#!pwsh
+
+# DON'T RUN FROM NOTEBOOK
+# NOTEBOOK EATS password prompt and you might have to REBOOT. Closing and opening Code might not be enough to cancel the request.
+
+# scp $env:USERPROFILE/.ssh/id_rsa.pub root@10.0.0.100:.ssh/authorized_keys
+
+#!pwsh
+
+$google_drive = Get-Secret -Vault LocalStore -Name motioneye-google-drive -AsPlainText
+
+#!markdown
+
+## Pull Configs from remote
+
+#!pwsh
+
+# PULL CONFIGS
+$address = $pi_zero
+function Get-PiConfigs {
+    param([string] $address)
+    if(-not(Test-Path("./$address/"))){mkdir ./$address/}
+    scp root@$($address):/data/etc/motion.conf ./$address/
+    scp root@$($address):/data/etc/camera-1.conf ./$address/
+    scp root@$($address):/data/etc/static_ip.conf ./$address/
+    scp root@$($address):/data/etc/os.conf ./$address/
+    scp root@$($address):/data/etc/mask_1.pgm ./$address/
+}
+Get-PiConfigs($pi_zero)
+Get-PiConfigs($pi_4)
+
+#!markdown
+
+## Push Configs to remote
+
+#!pwsh
+
+# PULL CONFIGS
+
+function Push-PiConfigs{
+    param([string] $address)
+    if(-not(Test-Path("./$address/"))){Write-Host "Local dir not found";return}
+    # scp motion.conf root@$($address):/data/etc/ 
+    scp ./$address/camera-1.conf root@$($address):/data/etc/ 
+    # scp ./$address/static_ip.conf root@$($address):/data/etc/ 
+    # scp ./$address/os.conf root@$($address):/data/etc/ 
+    # scp ./$address/mask_1.pgm root@$($address):/data/etc/ 
+    ssh root@$($address) reboot
+}
+Push-PiConfigs($pi_zero)
+Push-PiConfigs($pi_4)
+
+#!pwsh
+
+function Get-MotionFiles{
+    param(
+        [string] $address,
+        [string] $date
+    )
+    if(-not($date)){$date = Get-Date -format ("yyyy-MM-dd")}
+    $files = ssh "root@$address" ls "/data/output/Camera1/$date/"
+    foreach($file in $files){
+        Write-Host "Copying $file locally."
+        scp "root@$address`:/data/output/Camera1/$date/$file" "./$address/$date/"
+    }
+}
+Get-MotionFiles "10.0.0.101" "2021-12-26"
