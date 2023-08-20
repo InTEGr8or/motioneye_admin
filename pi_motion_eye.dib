@@ -14,6 +14,7 @@ $pi_zero = "10.0.0.101"
 * [Raspberry Pi Zero](http://10.0.0.101)
 * [Google Drive folder](https://drive.google.com/drive/u/2/folders/1wMFxkd5FmA7wWsf69FkvdI3hfWg9K6w8)
 * [MotionEyeOS GitHub FAQ](https://github.com/ccrisan/motioneyeos/wiki/FAQ)
+* [Install MotionEye (not OS) on Debian 11 (Bullseye) RasPPi](https://github.com/motioneye-project/motioneye/wiki/Install-on-Debian-11-%28Bullseye%29)
 
 #!pwsh
 
