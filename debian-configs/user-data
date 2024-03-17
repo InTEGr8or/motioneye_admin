@@ -1,0 +1,28 @@
+#cloud-config
+hostname: mepz1
+manage_etc_hosts: true
+packages:
+- avahi-daemon
+apt:
+  conf: |
+    Acquire {
+      Check-Date "false";
+    };
+
+users:
+- name: xgenx
+  groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+  shell: /bin/bash
+  lock_passwd: false
+  passwd: $5$kO2ya7Jiqu$kxFa1iK/p7FTGfPfV5M0Sv3TimLvYFPF5nY3gIjGaC5
+  ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHUBCShFpTGyJ+4OcXqlMQwkicCojx7qaV2zK76sgHHrLpVFrAKTHL9yj8j0KHUQuitTzW1W84+rCP3QY2rXnU1lO5eSKtV0X+SqcRK41iDW0cmqTsueEhbenKJ3m+KmDCmy6m5P0ZNaGlcKiyhkYoxG8CVwSHqFZUaIW9kitltDNwqwmvkuuJfSvhT1PKxVL9pM01+Ep/WknMyiNtyfmNQ7hU5yvIivo1uZtUTExuleHjYDVyG2B3xC69AQmrXvc5TapYd1GdJee/ULKS6Crxk5azwQb4Xl0nRa+cbrqLUaZnbFP7lrOEzIGP62P7UGsE/RxYswHK9muzaS4jqrE9 xgenx@DESKTOP-IIVKCIG
+  sudo: ALL=(ALL) NOPASSWD:ALL
+
+
+timezone: America/Los_Angeles
+runcmd:
+- localectl set-x11-keymap "us" pc105
+- setupcon -k --force || true
+
+

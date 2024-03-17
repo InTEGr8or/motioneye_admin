@@ -20,3 +20,26 @@ I can't access the camera yet but the site is up and running.
 [Install MotionEye in Docker](https://github.com/motioneye-project/motioneye/wiki/Install-in-Docker)
 [Access Camera from Docker container](https://www.losant.com/blog/how-to-access-the-raspberry-pi-camera-in-docker)
 [Troubleshooting Camera access from Docker](https://stackoverflow.com/questions/54842833/access-raspistill-pi-camera-inside-a-docker-container)
+
+## 2024-03-16
+
+MotionEyeOS hasn't been updated in a few years. There are some other ones, but they don't seem well maintained.
+
+## Raspberry Pi Imageer
+
+### Advanced Options
+
+`Ctrl+Shift+x`
+
+This is so hard to find on the Raspberry Pi Imager Website
+
+## USB SSH
+
+Until you get WiFi connections working very reliably, it is best to be able to SSH connect through USB. 
+
+add `dtoverlay=dwc2` to `config.txt`
+
+
+```
+console=serial0,115200 console=tty1 root=PARTUUID=6c586e13-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait modules-load=dwc2,g_ether quiet init=/usr/lib/raspi-config/init_resize.sh
+```
